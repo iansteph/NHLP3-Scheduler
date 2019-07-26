@@ -7,6 +7,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+// This class is used for directly interacting with the NHL APIs. It handles the actual service calls made to the NHL API endpoints.
 public class NhlClient {
 
     private final static RestTemplate restTemplate = new RestTemplate();
