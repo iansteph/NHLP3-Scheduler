@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Template for Scheduler
+
+Resources:
+  SchedulerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: SchedulerFunction
+      Handler: iansteph.nhlp3.scheduler.handler.SchedulerHandler::handleRequest
+      Runtime: java8
+      Description: Scheduler function for NHLP3 to set play-by-play-processing for games
+      MemorySize: 128
