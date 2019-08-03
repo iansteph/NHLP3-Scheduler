@@ -1,3 +1,8 @@
+# CloudFormation is a way to programmatically describe the set up of your infrastructure using JSON or YAML. Instead of
+# clicking through a console to get the settings right for your servers, networking, VPCs, networking, etc.
+#
+# More information can be found here: https://aws.amazon.com/cloudformation/
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM Template for Scheduler

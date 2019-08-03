@@ -10,7 +10,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Handler for requests to Lambda function.
+ * Handler for requests to Lambda function. This implements Lambda's RequestHandler interface which allows it to connect to Lambda.
+ * When Lambda receives an invocation request this is the method that is called (this is set in the CloudFormation template for the
+ * Lambda Function resource in the Properties section with the Handler setting). This is the entry point from AWS's Lambda service into the
+ * NHLP3 Scheduler function code.
  */
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
