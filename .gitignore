@@ -11,6 +11,8 @@ HelloWorldFunction/target/*
 
 # IntelliJ
 out/
+*.iml
+target/
 
 ### Java template
 # Compiled class file
@@ -27,3 +29,4 @@ out/
 *.zip
 *.tar.gz
 *.rar
+
