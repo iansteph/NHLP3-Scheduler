@@ -8,6 +8,33 @@ Transform: AWS::Serverless-2016-10-31
 Description: SAM Template for Scheduler
 
 Resources:
+
+  # This creates an IAM Role (more info here: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) which
+  # lambda assumes when invoking the lambda function it is associated with. This allows control over the exact
+  # permissions that the lambda has.
+  SchedulerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SchedulerExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - events:PutRule
+              Resource: *
+
+  # This is the lambda function itself
   SchedulerFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -16,3 +43,7 @@ Resources:
       Runtime: java8
       Description: Scheduler function for NHLP3 to set play-by-play-processing for games
       MemorySize: 128
+      Role:
+        Fn::GetAtt:
+          - SchedulerExecutionRole
+          - Arn

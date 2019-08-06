@@ -30,3 +30,4 @@ target/
 *.tar.gz
 *.rar
 
+/dependency-reduced-pom.xml
