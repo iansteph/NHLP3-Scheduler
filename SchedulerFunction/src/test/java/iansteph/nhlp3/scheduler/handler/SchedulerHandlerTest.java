@@ -13,9 +13,9 @@ import iansteph.nhlp3.scheduler.model.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutRuleRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutRuleResponse;
+import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
 
 import java.time.ZonedDateTime;
 
@@ -23,7 +23,7 @@ public class SchedulerHandlerTest {
 
     private NhlClient mockNhlClient = mock(NhlClient.class);
     private NhlProxy mockNhlProxy = new NhlProxy(mockNhlClient);
-    private EventBridgeClient mockEventBridgeClient = mock(EventBridgeClient.class);
+    private CloudWatchEventsClient mockCloudWatchEventsClient = mock(CloudWatchEventsClient.class);
 
     @Before
     public void setMockNhlClient() {
@@ -49,12 +49,12 @@ public class SchedulerHandlerTest {
 
         when(mockNhlClient.getScheduleForDate(any())).thenReturn(scheduleResponse);
         when(mockNhlClient.getScheduleForDateRange(any(), any())).thenReturn(scheduleResponseForDateRange);
-        when(mockEventBridgeClient.putRule(any(PutRuleRequest.class))).thenReturn(PutRuleResponse.builder().build());
+        when(mockCloudWatchEventsClient.putRule(any(PutRuleRequest.class))).thenReturn(PutRuleResponse.builder().build());
     }
 
     @Test
     public void successfulResponse() {
-        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockEventBridgeClient);
+        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient);
         final Object result = schedulerHandler.handleRequest(null, null);
         assertNotNull(result);
     }

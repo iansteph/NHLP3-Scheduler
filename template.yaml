@@ -32,7 +32,7 @@ Resources:
             - Effect: Allow
               Action:
                 - events:PutRule
-              Resource: *
+              Resource: '*'
 
   # This is the lambda function itself
   SchedulerFunction:
@@ -47,3 +47,4 @@ Resources:
         Fn::GetAtt:
           - SchedulerExecutionRole
           - Arn
+      Timeout: 30

@@ -51,8 +51,13 @@
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
-      <artifactId>eventbridge</artifactId>
-      <version>2.7.16</version>
+      <artifactId>cloudwatchevents</artifactId>
+      <version>[2.7.0,2.8.0)</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>apache-client</artifactId>
+      <version>[2.7.0,2.8.0)</version>
     </dependency>
   </dependencies>
 

@@ -7,9 +7,11 @@ import iansteph.nhlp3.scheduler.model.Date;
 import iansteph.nhlp3.scheduler.model.Game;
 import iansteph.nhlp3.scheduler.model.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutRuleRequest;
-import software.amazon.awssdk.services.eventbridge.model.RuleState;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
+import software.amazon.awssdk.services.cloudwatchevents.model.RuleState;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -26,11 +28,14 @@ import static java.lang.String.format;
  */
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
-    private EventBridgeClient eventBridgeClient;
+    private CloudWatchEventsClient cloudWatchEventsClient;
     private NhlProxy nhlProxy;
 
-    public SchedulerHandler(final NhlProxy nhlProxy, final EventBridgeClient eventBridgeClient) {
-        this.eventBridgeClient = eventBridgeClient;
+    // This is the constructor used when the Lambda function is invoked
+    public SchedulerHandler() {}
+
+    SchedulerHandler(final NhlProxy nhlProxy, final CloudWatchEventsClient cloudWatchEventsClient) {
+        this.cloudWatchEventsClient = cloudWatchEventsClient;
         this.nhlProxy = nhlProxy;
     }
 
@@ -38,8 +43,11 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         if (nhlProxy == null) {
             nhlProxy = new NhlProxy(new NhlClient());
         }
-        if (eventBridgeClient == null) {
-            eventBridgeClient = EventBridgeClient.create();
+        if (cloudWatchEventsClient == null) {
+            final ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
+            cloudWatchEventsClient = CloudWatchEventsClient.builder()
+                    .httpClientBuilder(httpClientBuilder)
+                    .build();
         }
 
         final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.parse("2018-01-09",
@@ -66,11 +74,13 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         final PutRuleRequest putRuleRequest = PutRuleRequest.builder()
                 .description(format("Event Rule triggering every minute invoking the play-by-play processor lambda for gameId: %s",
                         game.getGamePk()))
-                .name(format("GameId:%s", game.getGamePk()))
+                .name(format("GameId-%s", game.getGamePk()))
                 .scheduleExpression(createCronExpressionForPutRuleRequest(game))
                 .state(RuleState.ENABLED)
                 .build();
-        eventBridgeClient.putRule(putRuleRequest);
+        System.out.println(format("PutRuleRequest to CloudWatch Events API: %s", putRuleRequest));
+        final PutRuleResponse putRuleResponse = cloudWatchEventsClient.putRule(putRuleRequest);
+        System.out.println(format("PutRuleResponse from CloudWatch Events API: %s", putRuleResponse));
     }
 
     private String createCronExpressionForPutRuleRequest(final Game game) {
@@ -78,6 +88,6 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         final int dayOfMonth = date.getDayOfMonth();
         final int month = date.getMonthValue();
         final int year = date.getYear();
-        return format("cron(0/60 * * %s %s %s)", dayOfMonth, month, year);
+        return format("cron(* * %s %s ? %s)", dayOfMonth, month, year);
     }
 }
