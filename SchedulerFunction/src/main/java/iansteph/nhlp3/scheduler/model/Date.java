@@ -12,7 +12,6 @@ import java.util.List;
 public class Date {
 
     private List<Game> games;
-    private int totalGames;
 
     public List<Game> getGames() {
         return games;
@@ -22,15 +21,7 @@ public class Date {
         this.games = games;
     }
 
-    public int getTotalGames() {
-        return totalGames;
-    }
-
-    public void setTotalGames(final int totalGames) {
-        this.totalGames = totalGames;
-    }
-
     public String toString() {
-        return "Date(totalGames=" + totalGames + ",games=" + games + ")";
+        return "Date(games=" + games + ")";
     }
 }

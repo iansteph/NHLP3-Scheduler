@@ -31,24 +31,13 @@ public class SchedulerHandlerTest {
         game1.setGameDate(ZonedDateTime.now());
         game1.setGamePk(0);
 
-        final Game game2 = new Game();
-        game2.setGamePk(0);
-        game2.setGameDate(ZonedDateTime.now());
-
         final Date date1 = new Date();
         date1.setGames(ImmutableList.of(game1));
-
-        final Date date2 = new Date();
-        date2.setGames(ImmutableList.of(game2));
 
         final ScheduleResponse scheduleResponse = new ScheduleResponse();
         scheduleResponse.setDates(ImmutableList.of(date1));
 
-        final ScheduleResponse scheduleResponseForDateRange = new ScheduleResponse();
-        scheduleResponseForDateRange.setDates(ImmutableList.of(date1, date2));
-
         when(mockNhlClient.getScheduleForDate(any())).thenReturn(scheduleResponse);
-        when(mockNhlClient.getScheduleForDateRange(any(), any())).thenReturn(scheduleResponseForDateRange);
         when(mockCloudWatchEventsClient.putRule(any(PutRuleRequest.class))).thenReturn(PutRuleResponse.builder().build());
     }
 

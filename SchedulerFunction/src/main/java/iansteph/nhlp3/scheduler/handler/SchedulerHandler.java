@@ -15,7 +15,6 @@ import software.amazon.awssdk.services.cloudwatchevents.model.RuleState;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -49,19 +48,10 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
                     .httpClientBuilder(httpClientBuilder)
                     .build();
         }
-
-        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.parse("2018-01-09",
-                DateTimeFormatter.ISO_LOCAL_DATE));
-        System.out.println(scheduleResponseForDate);
-
-        final ScheduleResponse scheduleResponseForDateRange = nhlProxy.getScheduleForDateRange(LocalDate.parse("2018-01-11",
-                DateTimeFormatter.ISO_LOCAL_DATE), LocalDate.parse("2018-01-12", DateTimeFormatter.ISO_LOCAL_DATE));
-        System.out.println(scheduleResponseForDateRange);
-
+        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now());
+        System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
         setEventProcessingForGames(scheduleResponseForDate.getDates());
-        setEventProcessingForGames(scheduleResponseForDateRange.getDates());
-
-        return new Object();
+        return scheduleResponseForDate;
     }
 
     private void setEventProcessingForGames(final List<Date> dates) {

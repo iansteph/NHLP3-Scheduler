@@ -5,7 +5,6 @@ import iansteph.nhlp3.scheduler.model.ScheduleResponse;
 
 import java.time.LocalDate;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 // This class acts as a layer between the "low-level" service calls being made with the actual client and allows for additional application
@@ -22,12 +21,5 @@ public class NhlProxy {
     public ScheduleResponse getScheduleForDate(final LocalDate date) {
         checkNotNull(date);
         return nhlClient.getScheduleForDate(date);
-    }
-
-    public ScheduleResponse getScheduleForDateRange(final LocalDate startDate, final LocalDate endDate) {
-        checkNotNull(startDate);
-        checkNotNull(endDate);
-        checkArgument(startDate.isBefore(endDate));
-        return nhlClient.getScheduleForDateRange(startDate, endDate);
     }
 }

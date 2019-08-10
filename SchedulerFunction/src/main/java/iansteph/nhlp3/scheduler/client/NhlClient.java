@@ -19,11 +19,4 @@ public class NhlClient {
                 .queryParam("date", DateTimeFormatter.ISO_LOCAL_DATE.format(date));
         return restTemplate.getForObject(uriComponentsBuilder.toUriString(), ScheduleResponse.class);
     }
-
-    public ScheduleResponse getScheduleForDateRange(final LocalDate startDate, final LocalDate endDate) {
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(BASE_NHL_URL + SCHEDULE_API)
-                .queryParam("startDate", DateTimeFormatter.ISO_LOCAL_DATE.format(startDate))
-                .queryParam("endDate", DateTimeFormatter.ISO_LOCAL_DATE.format(endDate));
-        return restTemplate.getForObject(uriComponentsBuilder.toUriString(), ScheduleResponse.class);
-    }
 }

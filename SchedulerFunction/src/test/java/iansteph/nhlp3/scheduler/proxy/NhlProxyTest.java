@@ -20,7 +20,6 @@ public class NhlProxyTest {
     @Before
     public void setMockNhlClient() {
         when(mockNhlClient.getScheduleForDate(any())).thenReturn(new ScheduleResponse());
-        when(mockNhlClient.getScheduleForDateRange(any(), any())).thenReturn(new ScheduleResponse());
     }
 
     @Test
@@ -32,26 +31,5 @@ public class NhlProxyTest {
     @Test(expected = NullPointerException.class)
     public void testNullDateThrowsNullPointerExceptionForGetScheduleForDate() {
         nhlProxy.getScheduleForDate(null);
-    }
-
-    @Test
-    public void testGetScheduleForDateRangeSuccessfullyReturnsScheduleForDateRange() {
-        final ScheduleResponse response = nhlProxy.getScheduleForDateRange(LocalDate.now(), LocalDate.now().plusDays(1));
-        assertNotNull(response);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testNullStartDateThrowsNullPointerExceptionForGetScheduleForDateRange() {
-        nhlProxy.getScheduleForDateRange(null, LocalDate.now());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testNullEndDateThrowsNullPointerExceptionForGetScheduleForDateRange() {
-        nhlProxy.getScheduleForDateRange(LocalDate.now(), null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidStartDateThrowsIllegalArgumentExceptionForGetScheduleForDateRange() {
-        nhlProxy.getScheduleForDateRange(LocalDate.now(), LocalDate.now().minusDays(1));
     }
 }

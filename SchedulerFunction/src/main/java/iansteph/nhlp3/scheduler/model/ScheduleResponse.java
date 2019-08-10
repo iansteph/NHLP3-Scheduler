@@ -12,7 +12,6 @@ import java.util.List;
 public class ScheduleResponse {
 
     private List<Date> dates;
-    private int totalGames;
 
     public List<Date> getDates() {
         return dates;
@@ -22,15 +21,7 @@ public class ScheduleResponse {
         this.dates = dates;
     }
 
-    public int getTotalGames() {
-        return totalGames;
-    }
-
-    public void setTotalGames(final int totalGames) {
-        this.totalGames = totalGames;
-    }
-
     public String toString() {
-        return "ScheduleResponse(totalGames=" + totalGames + ",dates=" + dates + ")";
+        return "ScheduleResponse(dates=" + dates + ")";
     }
 }
