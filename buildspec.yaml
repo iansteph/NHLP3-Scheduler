@@ -9,6 +9,7 @@ phases:
       java: openjdk8
   pre_build:
     commands:
+      - cd SchedulerFunction
       - echo Test started on `date`
       - mvn clean compile test
   build:
