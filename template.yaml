@@ -48,3 +48,8 @@ Resources:
           - SchedulerExecutionRole
           - Arn
       Timeout: 30
+      Events:
+        SchedulerFunctionScheduleTrigger:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 2 *  * ? *)
