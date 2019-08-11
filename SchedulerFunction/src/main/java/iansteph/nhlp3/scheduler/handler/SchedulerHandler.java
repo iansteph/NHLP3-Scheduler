@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
 import software.amazon.awssdk.services.cloudwatchevents.model.RuleState;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
                     .httpClientBuilder(httpClientBuilder)
                     .build();
         }
-        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now());
+        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now(ZoneId.of("UTC")));
         System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
         setEventProcessingForGames(scheduleResponseForDate.getDates());
         return scheduleResponseForDate;
