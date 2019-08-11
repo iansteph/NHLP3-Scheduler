@@ -27,12 +27,12 @@ Resources:
               - sts:AssumeRole
       Policies:
         - PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - events:PutRule
-              Resource: '*'
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - events:PutRule
+                Resource: '*'
 
   # This is the lambda function itself
   SchedulerFunction:
