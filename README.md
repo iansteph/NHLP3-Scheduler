@@ -1,3 +1,5 @@
+![AWS CodeBuild Build Badge](https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoicGJKRmVaUGJGcEZvaiszQkxhc3U4L1duRTgySU8vbHpNUDlTVDVpZlN6OUxnQVl3RWlLRmxQN2JQYjltSUxjQ3RiQThNdGJST042SkZJYVpITUYwTzJFPSIsIml2UGFyYW1ldGVyU3BlYyI6IjZ2N1lRZjE0bi94ek9mbU4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
+
 # NHLP3
 Serverless **N**HL **P**lay-by-**P**lay **P**rocessor *(hence NHLP3)* built using [AWS Lambda](https://aws.amazon.com/) and NHL's public APIs *(more information can be found at [Drew Hynes's](https://gitlab.com/dword4) [NHL Stats API Documentation project](https://gitlab.com/dword4/nhlapi/blob/master/stats-api.md))*.
 
