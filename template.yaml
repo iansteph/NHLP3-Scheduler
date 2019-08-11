@@ -26,7 +26,8 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyDocument:
+        - PolicyName: SchedulerExecutionPolicy
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
