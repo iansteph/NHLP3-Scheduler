@@ -50,7 +50,7 @@ Resources:
           - Arn
       Timeout: 30
       Events:
-        SchedulerFunctionScheduleTrigger:
+        ScheduleTrigger:
           Type: Schedule
           Properties:
-            Schedule: cron(0 2 *  * ? *)
+            Schedule: cron(0 2 * * ? *)
