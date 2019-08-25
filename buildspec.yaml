@@ -18,7 +18,7 @@ phases:
       - mvn package shade:shade
       - mv target/Scheduler-1.0.jar .
       - unzip Scheduler-1.0.jar
-      - rm -rf target tst src buildspec.yml pom.xml Scheduler-1.0.jar
+      - rm -rf target tst src buildspec.yaml pom.xml Scheduler-1.0.jar
       - aws cloudformation package --template ../template.yaml --s3-bucket nhlp3-scheduler-cloudformation-artifacts --output-template ../template-export.yaml
 
 artifacts:
