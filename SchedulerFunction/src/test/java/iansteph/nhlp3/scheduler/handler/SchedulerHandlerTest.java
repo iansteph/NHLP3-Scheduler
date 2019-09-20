@@ -16,6 +16,8 @@ import org.junit.Test;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutTargetsRequest;
+import software.amazon.awssdk.services.cloudwatchevents.model.PutTargetsResponse;
 
 import java.time.ZonedDateTime;
 
@@ -39,6 +41,7 @@ public class SchedulerHandlerTest {
 
         when(mockNhlClient.getScheduleForDate(any())).thenReturn(scheduleResponse);
         when(mockCloudWatchEventsClient.putRule(any(PutRuleRequest.class))).thenReturn(PutRuleResponse.builder().build());
+        when(mockCloudWatchEventsClient.putTargets(any(PutTargetsRequest.class))).thenReturn(PutTargetsResponse.builder().build());
     }
 
     @Test

@@ -9,9 +9,7 @@ import iansteph.nhlp3.scheduler.model.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
-import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
-import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
-import software.amazon.awssdk.services.cloudwatchevents.model.RuleState;
+import software.amazon.awssdk.services.cloudwatchevents.model.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,6 +25,9 @@ import static java.lang.String.format;
  * NHLP3 Scheduler function code.
  */
 public class SchedulerHandler implements RequestHandler<Object, Object> {
+
+    private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
+    private static final String EVENT_PUBLISHER_LAMBDA_EXECUTION_ROLE_ARN = "arn:aws:iam::627812672245:role/NHLP3-Event-Publisher-Execution-Role-Prod";
 
     private CloudWatchEventsClient cloudWatchEventsClient;
     private NhlProxy nhlProxy;
@@ -62,16 +63,23 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private void setEventProcessingForGame(final Game game) {
+        final String ruleName = createCloudWatchEventRule(game);
+        addTargetToCloudWatchEventRule(ruleName, game);
+    }
+
+    private String createCloudWatchEventRule(final Game game) {
+        final String ruleName = format("GameId-%s", game.getGamePk());
         final PutRuleRequest putRuleRequest = PutRuleRequest.builder()
                 .description(format("Event Rule triggering every minute invoking the play-by-play processor lambda for gameId: %s",
                         game.getGamePk()))
-                .name(format("GameId-%s", game.getGamePk()))
+                .name(ruleName)
                 .scheduleExpression(createCronExpressionForPutRuleRequest(game))
                 .state(RuleState.ENABLED)
                 .build();
         System.out.println(format("PutRuleRequest to CloudWatch Events API: %s", putRuleRequest));
         final PutRuleResponse putRuleResponse = cloudWatchEventsClient.putRule(putRuleRequest);
         System.out.println(format("PutRuleResponse from CloudWatch Events API: %s", putRuleResponse));
+        return ruleName;
     }
 
     private String createCronExpressionForPutRuleRequest(final Game game) {
@@ -80,5 +88,20 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         final int month = date.getMonthValue();
         final int year = date.getYear();
         return format("cron(* * %s %s ? %s)", dayOfMonth, month, year);
+    }
+
+    private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
+        final Target target = Target.builder()
+                .arn(EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN)
+                .input(format("{\"gamePk\":\"%s\"}", game.getGamePk()))
+                .id("Event-Publisher-Lambda-Function")
+                .build();
+        final PutTargetsRequest putTargetsRequest = PutTargetsRequest.builder()
+                .rule(ruleName)
+                .targets(target)
+                .build();
+        System.out.println(format("PutTargetsRequest to CloudWatch Events API: %s", putTargetsRequest));
+        final PutTargetsResponse putTargetsResponse = cloudWatchEventsClient.putTargets(putTargetsRequest);
+        System.out.println(format("PutTargetsResponse from CloudWatch Events API: %s", putTargetsResponse));
     }
 }
