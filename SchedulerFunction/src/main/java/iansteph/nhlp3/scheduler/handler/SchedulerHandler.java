@@ -27,7 +27,6 @@ import static java.lang.String.format;
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
-    private static final String EVENT_PUBLISHER_LAMBDA_EXECUTION_ROLE_ARN = "arn:aws:iam::627812672245:role/NHLP3-Event-Publisher-Execution-Role-Prod";
 
     private CloudWatchEventsClient cloudWatchEventsClient;
     private NhlProxy nhlProxy;
