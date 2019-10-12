@@ -1,11 +1,15 @@
 package iansteph.nhlp3.scheduler.handler;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.google.common.hash.Hashing;
 import iansteph.nhlp3.scheduler.client.NhlClient;
-import iansteph.nhlp3.scheduler.model.Date;
-import iansteph.nhlp3.scheduler.model.Game;
-import iansteph.nhlp3.scheduler.model.ScheduleResponse;
+import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
+import iansteph.nhlp3.scheduler.model.scheduler.Date;
+import iansteph.nhlp3.scheduler.model.scheduler.Game;
+import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
@@ -29,13 +33,15 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
 
     private CloudWatchEventsClient cloudWatchEventsClient;
+    private DynamoDBMapper dynamoDbMapper;
     private NhlProxy nhlProxy;
 
     // This is the constructor used when the Lambda function is invoked
     public SchedulerHandler() {}
 
-    SchedulerHandler(final NhlProxy nhlProxy, final CloudWatchEventsClient cloudWatchEventsClient) {
+    SchedulerHandler(final NhlProxy nhlProxy, final CloudWatchEventsClient cloudWatchEventsClient, final DynamoDBMapper dynamoDbMapper) {
         this.cloudWatchEventsClient = cloudWatchEventsClient;
+        this.dynamoDbMapper = dynamoDbMapper;
         this.nhlProxy = nhlProxy;
     }
 
@@ -48,6 +54,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
             cloudWatchEventsClient = CloudWatchEventsClient.builder()
                     .httpClientBuilder(httpClientBuilder)
                     .build();
+            dynamoDbMapper = new DynamoDBMapper(AmazonDynamoDBClientBuilder.defaultClient());
         }
         final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now(ZoneId.of("UTC")));
         System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
@@ -64,6 +71,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private void setEventProcessingForGame(final Game game) {
         final String ruleName = createCloudWatchEventRule(game);
         addTargetToCloudWatchEventRule(ruleName, game);
+        initializePlayByPlayProcessingRecord(game);
     }
 
     private String createCloudWatchEventRule(final Game game) {
@@ -102,5 +110,21 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         System.out.println(format("PutTargetsRequest to CloudWatch Events API: %s", putTargetsRequest));
         final PutTargetsResponse putTargetsResponse = cloudWatchEventsClient.putTargets(putTargetsRequest);
         System.out.println(format("PutTargetsResponse from CloudWatch Events API: %s", putTargetsResponse));
+    }
+
+    private void initializePlayByPlayProcessingRecord(final Game game) {
+        final NhlPlayByPlayProcessingItem initializedRecord = createPlayByPlayProcessingRecord(game);
+        dynamoDbMapper.save(initializedRecord);
+        System.out.println(format("Put NhlPlayByPlayProcessingItem in DynamoDB: %s", initializedRecord));
+
+    }
+
+    private NhlPlayByPlayProcessingItem createPlayByPlayProcessingRecord(final Game game) {
+        final NhlPlayByPlayProcessingItem item = new NhlPlayByPlayProcessingItem();
+        final String hashedGameId = Hashing.murmur3_128().hashInt(game.getGamePk()).toString();
+        item.setCompositeGameId(String.format("%s~%s", hashedGameId, game.getGamePk()));
+        item.setIsIntermission(false);
+        item.setHasGameEnded(false);
+        return item;
     }
 }

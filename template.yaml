@@ -34,6 +34,10 @@ Resources:
                 Action:
                   - events:PutRule
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: 'arn:aws:dynamodb:us-east-1:627812672245:table/NhlPlayByPlayProcessingAggregate'
 
   # This is the lambda function itself
   SchedulerFunction:

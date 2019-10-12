@@ -5,11 +5,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.google.common.collect.ImmutableList;
 import iansteph.nhlp3.scheduler.client.NhlClient;
-import iansteph.nhlp3.scheduler.model.Date;
-import iansteph.nhlp3.scheduler.model.Game;
-import iansteph.nhlp3.scheduler.model.ScheduleResponse;
+import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
+import iansteph.nhlp3.scheduler.model.scheduler.Date;
+import iansteph.nhlp3.scheduler.model.scheduler.Game;
+import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,7 @@ public class SchedulerHandlerTest {
     private NhlClient mockNhlClient = mock(NhlClient.class);
     private NhlProxy mockNhlProxy = new NhlProxy(mockNhlClient);
     private CloudWatchEventsClient mockCloudWatchEventsClient = mock(CloudWatchEventsClient.class);
+    private DynamoDBMapper mockDynamoDbMapper = mock(DynamoDBMapper.class);
 
     @Before
     public void setMockNhlClient() {
@@ -46,7 +49,7 @@ public class SchedulerHandlerTest {
 
     @Test
     public void successfulResponse() {
-        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient);
+        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper);
         final Object result = schedulerHandler.handleRequest(null, null);
         assertNotNull(result);
     }

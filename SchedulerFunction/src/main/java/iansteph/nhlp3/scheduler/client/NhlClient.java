@@ -1,6 +1,6 @@
 package iansteph.nhlp3.scheduler.client;
 
-import iansteph.nhlp3.scheduler.model.ScheduleResponse;
+import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 

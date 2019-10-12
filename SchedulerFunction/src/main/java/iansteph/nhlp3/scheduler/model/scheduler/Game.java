@@ -1,4 +1,4 @@
-package iansteph.nhlp3.scheduler.model;
+package iansteph.nhlp3.scheduler.model.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

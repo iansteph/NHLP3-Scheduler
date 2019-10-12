@@ -1,7 +1,7 @@
 package iansteph.nhlp3.scheduler.proxy;
 
 import iansteph.nhlp3.scheduler.client.NhlClient;
-import iansteph.nhlp3.scheduler.model.ScheduleResponse;
+import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 
 import java.time.LocalDate;
 
