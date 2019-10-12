@@ -33,6 +33,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - events:PutRule
+                  - events:PutTargets
                 Resource: '*'
               - Effect: Allow
                 Action:
