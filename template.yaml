@@ -47,7 +47,7 @@ Resources:
       Handler: iansteph.nhlp3.scheduler.handler.SchedulerHandler::handleRequest
       Runtime: java8
       Description: Scheduler function for NHLP3 to set play-by-play-processing for games
-      MemorySize: 192
+      MemorySize: 256
       Role:
         Fn::GetAtt:
           - SchedulerExecutionRole
