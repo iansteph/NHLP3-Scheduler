@@ -12,8 +12,14 @@ import java.time.ZonedDateTime;
 public class Game {
 
     private int gamePk;
-
     private ZonedDateTime gameDate;
+
+    public Game() {}
+
+    public Game(final int gamePk, final ZonedDateTime gameDate) {
+        this.gamePk = gamePk;
+        this.gameDate = gameDate;
+    }
 
     public int getGamePk() {
         return gamePk;

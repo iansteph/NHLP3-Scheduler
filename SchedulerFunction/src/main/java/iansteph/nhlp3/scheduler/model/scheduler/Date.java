@@ -13,6 +13,12 @@ public class Date {
 
     private List<Game> games;
 
+    public Date() {}
+
+    public Date(final List<Game> games) {
+        this.games = games;
+    }
+
     public List<Game> getGames() {
         return games;
     }

@@ -13,6 +13,12 @@ public class ScheduleResponse {
 
     private List<Date> dates;
 
+    public ScheduleResponse() {}
+
+    public ScheduleResponse(final List<Date> dates) {
+        this.dates = dates;
+    }
+
     public List<Date> getDates() {
         return dates;
     }

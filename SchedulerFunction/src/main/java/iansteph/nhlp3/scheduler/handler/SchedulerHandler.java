@@ -11,6 +11,7 @@ import iansteph.nhlp3.scheduler.model.scheduler.Date;
 import iansteph.nhlp3.scheduler.model.scheduler.Game;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
+import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
 import software.amazon.awssdk.services.cloudwatchevents.model.*;
@@ -47,7 +48,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     public Object handleRequest(final Object input, final Context context) {
         if (nhlProxy == null) {
-            nhlProxy = new NhlProxy(new NhlClient());
+            nhlProxy = new NhlProxy(new NhlClient(new RestTemplate()));
         }
         if (cloudWatchEventsClient == null) {
             final ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
