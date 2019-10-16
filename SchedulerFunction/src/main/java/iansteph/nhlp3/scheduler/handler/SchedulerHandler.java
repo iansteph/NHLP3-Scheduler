@@ -38,7 +38,14 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private NhlProxy nhlProxy;
 
     // This is the constructor used when the Lambda function is invoked
-    public SchedulerHandler() {}
+    public SchedulerHandler() {
+        this.nhlProxy = new NhlProxy(new NhlClient(new RestTemplate()));
+        final ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
+        this.cloudWatchEventsClient = CloudWatchEventsClient.builder()
+                .httpClientBuilder(httpClientBuilder)
+                .build();
+        this.dynamoDbMapper = new DynamoDBMapper(AmazonDynamoDBClientBuilder.defaultClient());
+    }
 
     SchedulerHandler(final NhlProxy nhlProxy, final CloudWatchEventsClient cloudWatchEventsClient, final DynamoDBMapper dynamoDbMapper) {
         this.cloudWatchEventsClient = cloudWatchEventsClient;
@@ -47,16 +54,6 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     public Object handleRequest(final Object input, final Context context) {
-        if (nhlProxy == null) {
-            nhlProxy = new NhlProxy(new NhlClient(new RestTemplate()));
-        }
-        if (cloudWatchEventsClient == null) {
-            final ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
-            cloudWatchEventsClient = CloudWatchEventsClient.builder()
-                    .httpClientBuilder(httpClientBuilder)
-                    .build();
-            dynamoDbMapper = new DynamoDBMapper(AmazonDynamoDBClientBuilder.defaultClient());
-        }
         final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now(ZoneId.of("UTC")));
         System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
         setEventProcessingForGames(scheduleResponseForDate.getDates());
