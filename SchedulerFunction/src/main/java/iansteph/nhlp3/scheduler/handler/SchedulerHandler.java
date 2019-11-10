@@ -32,6 +32,7 @@ import static java.lang.String.format;
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
+    private static final String EVENT_PUBLISHER_LAMBDA_EXECUTION_IAM_ROLE = "arn:aws:iam::627812672245:role/NHLP3-Event-Publisher-Execution-Role-Prod";
 
     private CloudWatchEventsClient cloudWatchEventsClient;
     private DynamoDBMapper dynamoDbMapper;
@@ -98,6 +99,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
         final Target target = Target.builder()
                 .arn(EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN)
+                .roleArn(EVENT_PUBLISHER_LAMBDA_EXECUTION_IAM_ROLE)
                 .input(format("{\"gamePk\":\"%s\"}", game.getGamePk()))
                 .id("Event-Publisher-Lambda-Function")
                 .build();
