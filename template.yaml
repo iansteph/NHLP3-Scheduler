@@ -42,10 +42,6 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Resource: 'arn:aws:dynamodb:us-east-1:627812672245:table/NhlPlayByPlayProcessingAggregate'
-              - Effect: Allow
-                Action:
-                  - iam:PassRole
-                Resource: 'arn:aws:iam::627812672245:role/NHLP3-Event-Publisher-Execution-Role-Prod'
 
   # This is the lambda function itself
   SchedulerFunction:
