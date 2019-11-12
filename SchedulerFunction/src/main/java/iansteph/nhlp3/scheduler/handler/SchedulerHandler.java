@@ -92,10 +92,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     private String createCronExpressionForPutRuleRequest(final Game game) {
         final ZonedDateTime date = game.getGameDate();
-        final int dayOfMonth = date.getDayOfMonth();
-        final int month = date.getMonthValue();
-        final int year = date.getYear();
-        return format("cron(* * %s %s ? %s)", dayOfMonth, month, year);
+        return format("cron(%s/1 %s/1 %s/1 %s/1 ? *)", date.getMinute(), date.getHour(), date.getDayOfMonth(), date.getMonth().getValue());
     }
 
     private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
