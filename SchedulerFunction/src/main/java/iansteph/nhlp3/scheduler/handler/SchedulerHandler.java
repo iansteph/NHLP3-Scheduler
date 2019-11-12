@@ -54,7 +54,9 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     public Object handleRequest(final Object input, final Context context) {
-        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(LocalDate.now(ZoneId.of("UTC")));
+        final LocalDate today = LocalDate.now(ZoneId.of("UTC"));
+        System.out.println(format("Retrieving the NHL Schedule for %s", today));
+        final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(today);
         System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
         setEventProcessingForGames(scheduleResponseForDate.getDates());
         return scheduleResponseForDate;
@@ -67,6 +69,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private void setEventProcessingForGame(final Game game) {
+        System.out.println(format("Start time for GameId %s is: %s", game.getGamePk(), game.getGameDate()));
         final String ruleName = createCloudWatchEventRule(game);
         addTargetToCloudWatchEventRule(ruleName, game);
         initializePlayByPlayProcessingRecord(game);
