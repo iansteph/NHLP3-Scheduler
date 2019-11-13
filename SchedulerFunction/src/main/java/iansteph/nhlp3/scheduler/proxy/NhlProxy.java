@@ -19,7 +19,7 @@ public class NhlProxy {
     }
 
     public ScheduleResponse getScheduleForDate(final LocalDate date) {
-        checkNotNull(date);
+        checkNotNull(date, "Date must be non-null when calling NhlProxy::getScheduleForDate");
         return nhlClient.getScheduleForDate(date);
     }
 }
