@@ -11,6 +11,8 @@ import iansteph.nhlp3.scheduler.model.scheduler.Date;
 import iansteph.nhlp3.scheduler.model.scheduler.Game;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
@@ -31,11 +33,12 @@ import static java.lang.String.format;
  */
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
-    private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
-
     private CloudWatchEventsClient cloudWatchEventsClient;
     private DynamoDBMapper dynamoDbMapper;
     private NhlProxy nhlProxy;
+
+    private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
+    private static final Logger logger = LogManager.getLogger(SchedulerHandler.class);
 
     // This is the constructor used when the Lambda function is invoked
     public SchedulerHandler() {
@@ -55,9 +58,9 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     public Object handleRequest(final Object input, final Context context) {
         final LocalDate today = LocalDate.now(ZoneId.of("UTC"));
-        System.out.println(format("Retrieving the NHL Schedule for %s", today));
+        logger.info(format("Retrieving the NHL Schedule for %s", today));
         final ScheduleResponse scheduleResponseForDate = nhlProxy.getScheduleForDate(today);
-        System.out.println(format("NHL Schedule API response: %s", scheduleResponseForDate));
+        logger.info(format("NHL Schedule API response: %s", scheduleResponseForDate));
         setEventProcessingForGames(scheduleResponseForDate.getDates());
         return scheduleResponseForDate;
     }
@@ -69,7 +72,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private void setEventProcessingForGame(final Game game) {
-        System.out.println(format("Start time for GameId %s is: %s", game.getGamePk(), game.getGameDate()));
+        logger.info(format("Start time for GameId %s is: %s", game.getGamePk(), game.getGameDate()));
         final String ruleName = createCloudWatchEventRule(game);
         addTargetToCloudWatchEventRule(ruleName, game);
         initializePlayByPlayProcessingRecord(game);
@@ -84,9 +87,9 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
                 .scheduleExpression(createCronExpressionForPutRuleRequest(game))
                 .state(RuleState.ENABLED)
                 .build();
-        System.out.println(format("PutRuleRequest to CloudWatch Events API: %s", putRuleRequest));
+        logger.info(format("PutRuleRequest to CloudWatch Events API: %s", putRuleRequest));
         final PutRuleResponse putRuleResponse = cloudWatchEventsClient.putRule(putRuleRequest);
-        System.out.println(format("PutRuleResponse from CloudWatch Events API: %s", putRuleResponse));
+        logger.info(format("PutRuleResponse from CloudWatch Events API: %s", putRuleResponse));
         return ruleName;
     }
 
@@ -105,16 +108,15 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
                 .rule(ruleName)
                 .targets(target)
                 .build();
-        System.out.println(format("PutTargetsRequest to CloudWatch Events API: %s", putTargetsRequest));
+        logger.info(format("PutTargetsRequest to CloudWatch Events API: %s", putTargetsRequest));
         final PutTargetsResponse putTargetsResponse = cloudWatchEventsClient.putTargets(putTargetsRequest);
-        System.out.println(format("PutTargetsResponse from CloudWatch Events API: %s", putTargetsResponse));
+        logger.info(format("PutTargetsResponse from CloudWatch Events API: %s", putTargetsResponse));
     }
 
     private void initializePlayByPlayProcessingRecord(final Game game) {
         final NhlPlayByPlayProcessingItem initializedRecord = createPlayByPlayProcessingRecord(game);
         dynamoDbMapper.save(initializedRecord);
-        System.out.println(format("Put NhlPlayByPlayProcessingItem in DynamoDB: %s", initializedRecord));
-
+        logger.info(format("Put NhlPlayByPlayProcessingItem in DynamoDB: %s", initializedRecord));
     }
 
     private NhlPlayByPlayProcessingItem createPlayByPlayProcessingRecord(final Game game) {

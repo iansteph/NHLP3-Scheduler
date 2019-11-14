@@ -2,6 +2,8 @@ package iansteph.nhlp3.scheduler.proxy;
 
 import iansteph.nhlp3.scheduler.client.NhlClient;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDate;
 
@@ -14,12 +16,20 @@ public class NhlProxy {
 
     final NhlClient nhlClient;
 
+    private static final Logger logger = LogManager.getLogger(NhlProxy.class);
+
     public NhlProxy(final NhlClient nhlClient) {
         this.nhlClient = nhlClient;
     }
 
     public ScheduleResponse getScheduleForDate(final LocalDate date) {
-        checkNotNull(date, "Date must be non-null when calling NhlProxy::getScheduleForDate");
-        return nhlClient.getScheduleForDate(date);
+        try {
+            checkNotNull(date, "Date must be non-null when calling NhlProxy::getScheduleForDate");
+            return nhlClient.getScheduleForDate(date);
+        }
+        catch (NullPointerException e) {
+            logger.error(e);
+            throw e;
+        }
     }
 }
