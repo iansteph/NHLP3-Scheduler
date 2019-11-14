@@ -98,7 +98,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
         final Target target = Target.builder()
                 .arn(EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN)
-                .input(format("{\"gamePk\":\"%s\"}", game.getGamePk()))
+                .input(format("{\"gameId\":\"%s\"}", game.getGamePk()))
                 .id("Event-Publisher-Lambda-Function")
                 .build();
         final PutTargetsRequest putTargetsRequest = PutTargetsRequest.builder()
