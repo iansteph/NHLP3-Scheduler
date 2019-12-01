@@ -130,6 +130,6 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private String transformLocalDateToInitialLastProcessedTimestamp(final LocalDate localDate) {
-        return format("%s%s%s_000000", localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth());
+        return format("%d%02d%02d_000000", localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth());
     }
 }
