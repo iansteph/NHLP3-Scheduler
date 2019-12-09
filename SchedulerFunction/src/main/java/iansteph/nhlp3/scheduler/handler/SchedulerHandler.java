@@ -37,7 +37,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private DynamoDBMapper dynamoDbMapper;
     private NhlProxy nhlProxy;
 
-    private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-Prod-EventPublisherFunction-1SBK7I88SVTNP";
+    private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-prod";
     private static final Logger logger = LogManager.getLogger(SchedulerHandler.class);
 
     // This is the constructor used when the Lambda function is invoked
