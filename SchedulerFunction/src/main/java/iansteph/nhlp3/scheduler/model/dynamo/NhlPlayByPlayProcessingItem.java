@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel.DynamoDBAttributeType;;
 
-@DynamoDBTable(tableName="NhlPlayByPlayProcessingAggregate")
+@DynamoDBTable(tableName="prod-NhlPlayByPlayProcessingAggregate")
 public class NhlPlayByPlayProcessingItem {
 
     private String compositeGameId;
