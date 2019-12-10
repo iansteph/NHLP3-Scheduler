@@ -41,7 +41,7 @@ Resources:
                 Action:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
-                Resource: 'arn:aws:dynamodb:us-east-1:627812672245:table/NhlPlayByPlayProcessingAggregate'
+                Resource: 'arn:aws:dynamodb:us-east-1:627812672245:table/prod-NhlPlayByPlayProcessingAggregate'
               - Effect: Allow
                 Action:
                   - xray:*
