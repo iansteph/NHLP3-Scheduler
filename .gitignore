@@ -1,3 +1,4 @@
 .idea/*
 SchedulerFunction/.aws-sam/*
 .aws-sam/*
+samconfig.toml

@@ -123,13 +123,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         final NhlPlayByPlayProcessingItem item = new NhlPlayByPlayProcessingItem();
         final String hashedGameId = Hashing.murmur3_128().hashInt(game.getGamePk()).toString();
         item.setCompositeGameId(String.format("%s~%s", hashedGameId, game.getGamePk()));
-        item.setLastProcessedTimeStamp(transformLocalDateToInitialLastProcessedTimestamp(game.getGameDate().toLocalDate()));
         item.setLastProcessedEventIndex(0);
-        item.setInIntermission(false);
         return item;
-    }
-
-    private String transformLocalDateToInitialLastProcessedTimestamp(final LocalDate localDate) {
-        return format("%d%02d%02d_000000", localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth());
     }
 }
