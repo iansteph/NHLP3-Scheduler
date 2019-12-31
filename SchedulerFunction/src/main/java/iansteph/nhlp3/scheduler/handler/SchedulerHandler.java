@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
 import software.amazon.awssdk.services.cloudwatchevents.model.*;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -94,8 +95,35 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private String createCronExpressionForPutRuleRequest(final Game game) {
+
+        //  cron(* x/1 day,day+1, month_abbrev,month_abbrev+1 ? *)
+        //       |  |     |                   |               | |
+        //       |  |     |                   |               | '- Every year (in case of rollover)
+        //       |  |     |                   |               '- Ignored, because day-of-month is specified
+        //       |  |     |                   '- starting month & next month (in case of rollover)
+        //       |  |     '- starting day-of-month & next (in case of rollover)
+        //       |  '- every hour beginning on the hour specified
+        //       '- every minute
         final ZonedDateTime date = game.getGameDate();
-        return format("cron(* %s/1 %s/1 %s/1 ? *)", date.getHour(), date.getDayOfMonth(), date.getMonth().getValue());
+        final ZonedDateTime nextDate = date.plusDays(1);
+
+        // Hour
+        final int hour = date.getHour();
+        final String hourExpression = hour + "/1";
+
+        // Day
+        final int day = date.getDayOfMonth();
+        final int nextDay = nextDate.getDayOfMonth();
+        final String dayExpression = day + "," + nextDay;
+
+        // Month
+        final Month month = date.getMonth();
+        final String monthAbbreviation = month.name().substring(0, 3);
+        final String nextMonthAbbreviation = nextDate.getMonth().name().substring(0, 3);
+        final String monthExpression = month.equals(nextDate.getMonth()) ?
+                month.name().substring(0, 3) :
+                monthAbbreviation + "," + nextMonthAbbreviation;
+        return format("cron(* %s %s %s ? *)", hourExpression, dayExpression, monthExpression);
     }
 
     private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
