@@ -19,7 +19,7 @@ public class NhlClientTest extends UnitTestBase {
     @Test
     public void successfulGetScheduleForDate() {
         final RestTemplate mockRestTemplate = mock(RestTemplate.class);
-        when(mockRestTemplate.getForObject(any(), any())).thenReturn(scheduleResponse);
+        when(mockRestTemplate.getForObject(any(), any())).thenReturn(SCHEDULE_RESPONSE);
         final NhlClient nhlClient = new NhlClient(mockRestTemplate);
 
         final ScheduleResponse response = nhlClient.getScheduleForDate(LocalDate.now());

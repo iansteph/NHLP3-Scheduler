@@ -22,7 +22,7 @@ public class NhlProxyTest extends UnitTestBase {
 
     @Before
     public void setMockNhlClient() {
-        when(mockNhlClient.getScheduleForDate(any())).thenReturn(scheduleResponse);
+        when(mockNhlClient.getScheduleForDate(any())).thenReturn(SCHEDULE_RESPONSE);
     }
 
     @Test

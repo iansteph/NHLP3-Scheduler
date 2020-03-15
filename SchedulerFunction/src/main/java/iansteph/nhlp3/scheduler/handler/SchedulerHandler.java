@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -69,6 +70,9 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private void setEventProcessingForGames(final List<Date> dates) {
         dates.stream()
                 .map(Date::getGames)
+                .map(games -> games.stream()
+                        .filter(game -> !game.getStatus().getDetailedState().toLowerCase().equals("postponed"))
+                )
                 .forEach((games -> games.forEach(this::setEventProcessingForGame)));
     }
 
