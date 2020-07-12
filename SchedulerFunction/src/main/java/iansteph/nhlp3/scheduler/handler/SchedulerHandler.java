@@ -7,6 +7,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.google.common.hash.Hashing;
 import iansteph.nhlp3.scheduler.client.NhlClient;
 import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
+import iansteph.nhlp3.scheduler.model.dynamo.ShiftPublishingItem;
 import iansteph.nhlp3.scheduler.model.scheduler.Date;
 import iansteph.nhlp3.scheduler.model.scheduler.Game;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
@@ -22,8 +23,10 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -146,9 +149,15 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private void initializePlayByPlayProcessingRecord(final Game game) {
+        // Initialize record for Play-by-Play processing
         final NhlPlayByPlayProcessingItem initializedRecord = createPlayByPlayProcessingRecord(game);
         dynamoDbMapper.save(initializedRecord);
         logger.info(format("Put NhlPlayByPlayProcessingItem in DynamoDB: %s", initializedRecord));
+
+        // Initialize record for shift publishing
+        final ShiftPublishingItem shiftPublishingItem = createShiftPublishingRecord(game);
+        dynamoDbMapper.save(shiftPublishingItem);
+        logger.info(format("Put ShiftPublishingItem in DynamoDB: %s", shiftPublishingItem));
     }
 
     private NhlPlayByPlayProcessingItem createPlayByPlayProcessingRecord(final Game game) {
@@ -157,5 +166,18 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         item.setCompositeGameId(String.format("%s~%s", hashedGameId, game.getGamePk()));
         item.setLastProcessedEventIndex(0);
         return item;
+    }
+
+    private ShiftPublishingItem createShiftPublishingRecord(final Game game) {
+
+        final String key = format("SHIFTPUBLISHING-%d", game.getGamePk());
+        final ShiftPublishingItem shiftPublishingItem = new ShiftPublishingItem();
+        shiftPublishingItem.setPK(key);
+        shiftPublishingItem.setSK(key);
+        final Map<String, Map<String, Integer>> shiftPublishingRecord = new HashMap<>();
+        shiftPublishingRecord.put("visitor", Collections.emptyMap());
+        shiftPublishingRecord.put("home", Collections.emptyMap());
+        shiftPublishingItem.setShiftPublishingRecord(shiftPublishingRecord);
+        return shiftPublishingItem;
     }
 }

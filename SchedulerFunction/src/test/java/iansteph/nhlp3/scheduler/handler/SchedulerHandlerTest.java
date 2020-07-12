@@ -14,6 +14,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import iansteph.nhlp3.scheduler.UnitTestBase;
 import iansteph.nhlp3.scheduler.client.NhlClient;
 import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
+import iansteph.nhlp3.scheduler.model.dynamo.ShiftPublishingItem;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import org.junit.Before;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.cloudwatchevents.model.PutTargetsResponse
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 
 public class SchedulerHandlerTest extends UnitTestBase {
 
@@ -47,17 +49,27 @@ public class SchedulerHandlerTest extends UnitTestBase {
     public void test_handleResponse_successfully_processes_response_when_there_are_scheduled_games() {
 
         final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper);
-        final ArgumentCaptor<NhlPlayByPlayProcessingItem> dynamoDBMapperArgumentCaptor =
-                ArgumentCaptor.forClass(NhlPlayByPlayProcessingItem.class);
+        final String expectedShiftPublishingItemKey = "SHIFTPUBLISHING-1";
 
         final Object result = schedulerHandler.handleRequest(null, null);
 
         assertThat(result, is(notNullValue()));
-        verify(mockDynamoDbMapper, times(1)).save(dynamoDBMapperArgumentCaptor.capture());
-        final NhlPlayByPlayProcessingItem item = dynamoDBMapperArgumentCaptor.getValue();
+        final ArgumentCaptor<Object> dynamoDbMapperArgumentCaptor =
+                ArgumentCaptor.forClass(Object.class);
+        verify(mockDynamoDbMapper, times(2)).save(dynamoDbMapperArgumentCaptor.capture());
+        final List<Object> invocationArguments = dynamoDbMapperArgumentCaptor.getAllValues();
+        final NhlPlayByPlayProcessingItem item = (NhlPlayByPlayProcessingItem) invocationArguments.get(0);
         assertThat(item, is(notNullValue()));
         assertThat(item.getCompositeGameId(), is(notNullValue()));
         assertThat(item.getLastProcessedEventIndex(), is(0));
+        final ShiftPublishingItem shiftPublishingItem = (ShiftPublishingItem) invocationArguments.get(1);
+        assertThat(shiftPublishingItem, is(notNullValue()));
+        assertThat(shiftPublishingItem.getPK(), is(expectedShiftPublishingItemKey));
+        assertThat(shiftPublishingItem.getSK(), is(expectedShiftPublishingItemKey));
+        assertThat(shiftPublishingItem.getShiftPublishingRecord(), is(notNullValue()));
+        assertThat(shiftPublishingItem.getShiftPublishingRecord().size(), is(2));
+        assertThat(shiftPublishingItem.getShiftPublishingRecord().get("visitor"), is(Collections.emptyMap()));
+        assertThat(shiftPublishingItem.getShiftPublishingRecord().get("home"), is(Collections.emptyMap()));
     }
 
     @Test
