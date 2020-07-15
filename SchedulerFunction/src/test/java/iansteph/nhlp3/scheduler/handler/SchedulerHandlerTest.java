@@ -14,7 +14,6 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import iansteph.nhlp3.scheduler.UnitTestBase;
 import iansteph.nhlp3.scheduler.client.NhlClient;
 import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
-import iansteph.nhlp3.scheduler.model.dynamo.ShiftPublishingItem;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
 import iansteph.nhlp3.scheduler.proxy.NhlProxy;
 import org.junit.Before;
@@ -25,10 +24,14 @@ import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleResponse;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutTargetsRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutTargetsResponse;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class SchedulerHandlerTest extends UnitTestBase {
 
@@ -36,6 +39,7 @@ public class SchedulerHandlerTest extends UnitTestBase {
     private NhlProxy mockNhlProxy = new NhlProxy(mockNhlClient);
     private CloudWatchEventsClient mockCloudWatchEventsClient = mock(CloudWatchEventsClient.class);
     private DynamoDBMapper mockDynamoDbMapper = mock(DynamoDBMapper.class);
+    private DynamoDbClient mockDynamoDbClient = mock(DynamoDbClient.class);
 
     @Before
     public void setMockNhlClient() {
@@ -48,28 +52,31 @@ public class SchedulerHandlerTest extends UnitTestBase {
     @Test
     public void test_handleResponse_successfully_processes_response_when_there_are_scheduled_games() {
 
-        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper);
+        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper, mockDynamoDbClient);
         final String expectedShiftPublishingItemKey = "SHIFTPUBLISHING-1";
 
         final Object result = schedulerHandler.handleRequest(null, null);
 
         assertThat(result, is(notNullValue()));
-        final ArgumentCaptor<Object> dynamoDbMapperArgumentCaptor =
-                ArgumentCaptor.forClass(Object.class);
-        verify(mockDynamoDbMapper, times(2)).save(dynamoDbMapperArgumentCaptor.capture());
-        final List<Object> invocationArguments = dynamoDbMapperArgumentCaptor.getAllValues();
-        final NhlPlayByPlayProcessingItem item = (NhlPlayByPlayProcessingItem) invocationArguments.get(0);
+        final ArgumentCaptor<NhlPlayByPlayProcessingItem> dynamoDbMapperArgumentCaptor =
+                ArgumentCaptor.forClass(NhlPlayByPlayProcessingItem.class);
+        verify(mockDynamoDbMapper, times(1)).save(dynamoDbMapperArgumentCaptor.capture());
+        final NhlPlayByPlayProcessingItem item = dynamoDbMapperArgumentCaptor.getValue();
         assertThat(item, is(notNullValue()));
         assertThat(item.getCompositeGameId(), is(notNullValue()));
         assertThat(item.getLastProcessedEventIndex(), is(0));
-        final ShiftPublishingItem shiftPublishingItem = (ShiftPublishingItem) invocationArguments.get(1);
-        assertThat(shiftPublishingItem, is(notNullValue()));
-        assertThat(shiftPublishingItem.getPK(), is(expectedShiftPublishingItemKey));
-        assertThat(shiftPublishingItem.getSK(), is(expectedShiftPublishingItemKey));
-        assertThat(shiftPublishingItem.getShiftPublishingRecord(), is(notNullValue()));
-        assertThat(shiftPublishingItem.getShiftPublishingRecord().size(), is(2));
-        assertThat(shiftPublishingItem.getShiftPublishingRecord().get("visitor"), is(Collections.emptyMap()));
-        assertThat(shiftPublishingItem.getShiftPublishingRecord().get("home"), is(Collections.emptyMap()));
+        final ArgumentCaptor<PutItemRequest> putItemRequestArgumentCaptor = ArgumentCaptor.forClass(PutItemRequest.class);
+        verify(mockDynamoDbClient, times(1)).putItem(putItemRequestArgumentCaptor.capture());
+        final PutItemRequest putItemRequest = putItemRequestArgumentCaptor.getValue();
+        assertThat(putItemRequest.tableName(), is("NHLP3-Aggregate"));
+        final Map<String, AttributeValue> actualItem = putItemRequest.item();
+        assertThat(actualItem.size(), is(3));
+        assertThat(actualItem.get("PK").s(), is(expectedShiftPublishingItemKey));
+        assertThat(actualItem.get("SK").s(), is(expectedShiftPublishingItemKey));
+        final Map<String, AttributeValue> actualShiftPublishingRecord = actualItem.get("shiftPublishingRecord").m();
+        assertThat(actualShiftPublishingRecord.size(), is(2));
+        assertThat(actualShiftPublishingRecord.get("visitor").m(), is(Collections.emptyMap()));
+        assertThat(actualShiftPublishingRecord.get("home").m(), is(Collections.emptyMap()));
     }
 
     @Test
@@ -77,7 +84,7 @@ public class SchedulerHandlerTest extends UnitTestBase {
 
         final ScheduleResponse scheduleResponse = generateScheduleResponseWithGame(generateGameWithDetailedState("Postponed"));
         when(mockNhlClient.getScheduleForDate(any(LocalDate.class))).thenReturn(scheduleResponse);
-        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper);
+        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper, mockDynamoDbClient);
         final ArgumentCaptor<NhlPlayByPlayProcessingItem> dynamoDBMapperArgumentCaptor =
                 ArgumentCaptor.forClass(NhlPlayByPlayProcessingItem.class);
 
@@ -92,7 +99,7 @@ public class SchedulerHandlerTest extends UnitTestBase {
 
         final ScheduleResponse scheduleResponse = new ScheduleResponse(Collections.emptyList());
         when(mockNhlClient.getScheduleForDate(any(LocalDate.class))).thenReturn(scheduleResponse);
-        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper);
+        final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper, mockDynamoDbClient);
         final ArgumentCaptor<NhlPlayByPlayProcessingItem> dynamoDBMapperArgumentCaptor =
                 ArgumentCaptor.forClass(NhlPlayByPlayProcessingItem.class);
 

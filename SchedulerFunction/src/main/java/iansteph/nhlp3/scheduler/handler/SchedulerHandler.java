@@ -7,7 +7,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.google.common.hash.Hashing;
 import iansteph.nhlp3.scheduler.client.NhlClient;
 import iansteph.nhlp3.scheduler.model.dynamo.NhlPlayByPlayProcessingItem;
-import iansteph.nhlp3.scheduler.model.dynamo.ShiftPublishingItem;
 import iansteph.nhlp3.scheduler.model.scheduler.Date;
 import iansteph.nhlp3.scheduler.model.scheduler.Game;
 import iansteph.nhlp3.scheduler.model.scheduler.ScheduleResponse;
@@ -18,6 +17,10 @@ import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
 import software.amazon.awssdk.services.cloudwatchevents.model.*;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -39,6 +42,7 @@ import static java.lang.String.format;
 public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     private CloudWatchEventsClient cloudWatchEventsClient;
+    private DynamoDbClient dynamoDbClient;
     private DynamoDBMapper dynamoDbMapper;
     private NhlProxy nhlProxy;
 
@@ -52,13 +56,20 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         this.cloudWatchEventsClient = CloudWatchEventsClient.builder()
                 .httpClientBuilder(httpClientBuilder)
                 .build();
+        this.dynamoDbClient = DynamoDbClient.create();
         this.dynamoDbMapper = new DynamoDBMapper(AmazonDynamoDBClientBuilder.defaultClient());
     }
 
-    SchedulerHandler(final NhlProxy nhlProxy, final CloudWatchEventsClient cloudWatchEventsClient, final DynamoDBMapper dynamoDbMapper) {
+    SchedulerHandler(
+            final NhlProxy nhlProxy,
+            final CloudWatchEventsClient cloudWatchEventsClient,
+            final DynamoDBMapper dynamoDbMapper,
+            final DynamoDbClient dynamoDbClient
+    ) {
+        this.nhlProxy = nhlProxy;
         this.cloudWatchEventsClient = cloudWatchEventsClient;
         this.dynamoDbMapper = dynamoDbMapper;
-        this.nhlProxy = nhlProxy;
+        this.dynamoDbClient = dynamoDbClient;
     }
 
     public Object handleRequest(final Object input, final Context context) {
@@ -155,9 +166,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         logger.info(format("Put NhlPlayByPlayProcessingItem in DynamoDB: %s", initializedRecord));
 
         // Initialize record for shift publishing
-        final ShiftPublishingItem shiftPublishingItem = createShiftPublishingRecord(game);
-        dynamoDbMapper.save(shiftPublishingItem);
-        logger.info(format("Put ShiftPublishingItem in DynamoDB: %s", shiftPublishingItem));
+        createShiftPublishingRecord(game);
     }
 
     private NhlPlayByPlayProcessingItem createPlayByPlayProcessingRecord(final Game game) {
@@ -168,16 +177,22 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
         return item;
     }
 
-    private ShiftPublishingItem createShiftPublishingRecord(final Game game) {
+    private void createShiftPublishingRecord(final Game game) {
 
         final String key = format("SHIFTPUBLISHING-%d", game.getGamePk());
-        final ShiftPublishingItem shiftPublishingItem = new ShiftPublishingItem();
-        shiftPublishingItem.setPK(key);
-        shiftPublishingItem.setSK(key);
-        final Map<String, Map<String, Integer>> shiftPublishingRecord = new HashMap<>();
-        shiftPublishingRecord.put("visitor", Collections.emptyMap());
-        shiftPublishingRecord.put("home", Collections.emptyMap());
-        shiftPublishingItem.setShiftPublishingRecord(shiftPublishingRecord);
-        return shiftPublishingItem;
+        final AttributeValue keyAttribute = AttributeValue.builder().s(key).build();
+        final Map<String, AttributeValue> item = new HashMap<>();
+        item.put("PK", keyAttribute);
+        item.put("SK", keyAttribute);
+        final Map<String, AttributeValue> shiftPublishingAttribute = new HashMap<>();
+        shiftPublishingAttribute.put("visitor", AttributeValue.builder().m(Collections.emptyMap()).build());
+        shiftPublishingAttribute.put("home", AttributeValue.builder().m(Collections.emptyMap()).build());
+        item.put("shiftPublishingRecord", AttributeValue.builder().m(shiftPublishingAttribute).build());
+        final PutItemRequest putItemRequest = PutItemRequest.builder()
+                .tableName("NHLP3-Aggregate")
+                .item(item)
+                .build();
+        logger.info(format("Putting ShiftPublishingItem in DynamoDB: %s", putItemRequest));
+        final PutItemResponse putItemResponse = dynamoDbClient.putItem(putItemRequest);
     }
 }
