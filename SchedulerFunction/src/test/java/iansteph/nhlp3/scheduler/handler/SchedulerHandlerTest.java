@@ -53,7 +53,7 @@ public class SchedulerHandlerTest extends UnitTestBase {
     public void test_handleResponse_successfully_processes_response_when_there_are_scheduled_games() {
 
         final SchedulerHandler schedulerHandler = new SchedulerHandler(mockNhlProxy, mockCloudWatchEventsClient, mockDynamoDbMapper, mockDynamoDbClient);
-        final String expectedShiftPublishingItemKey = "SHIFTPUBLISHING-1";
+        final String expectedShiftPublishingItemKey = "SHIFTPUBLISHING#1";
 
         final Object result = schedulerHandler.handleRequest(null, null);
 

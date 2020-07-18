@@ -179,7 +179,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
 
     private void createShiftPublishingRecord(final Game game) {
 
-        final String key = format("SHIFTPUBLISHING-%d", game.getGamePk());
+        final String key = format("SHIFTPUBLISHING#%d", game.getGamePk());
         final AttributeValue keyAttribute = AttributeValue.builder().s(key).build();
         final Map<String, AttributeValue> item = new HashMap<>();
         item.put("PK", keyAttribute);
