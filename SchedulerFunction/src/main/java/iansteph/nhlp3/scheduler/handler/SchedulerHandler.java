@@ -47,6 +47,7 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     private NhlProxy nhlProxy;
 
     private static final String EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-EventPublisher-prod";
+    private static final String SHIFT_PUBLISHER_LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:627812672245:function:NHLP3-ShiftPublisher-prod";
     private static final Logger logger = LogManager.getLogger(SchedulerHandler.class);
 
     // This is the constructor used when the Lambda function is invoked
@@ -145,14 +146,20 @@ public class SchedulerHandler implements RequestHandler<Object, Object> {
     }
 
     private void addTargetToCloudWatchEventRule(final String ruleName, final Game game) {
-        final Target target = Target.builder()
+        final String targetInput = format("{\"gameId\":\"%s\"}", game.getGamePk());
+        final Target eventPublisherTarget = Target.builder()
                 .arn(EVENT_PUBLISHER_LAMBDA_FUNCTION_ARN)
-                .input(format("{\"gameId\":\"%s\"}", game.getGamePk()))
+                .input(targetInput)
                 .id("Event-Publisher-Lambda-Function")
+                .build();
+        final Target shiftPublisherTarget = Target.builder()
+                .arn(SHIFT_PUBLISHER_LAMBDA_FUNCTION_ARN)
+                .input(targetInput)
+                .id("Shift-Publisher-Lambda-Function")
                 .build();
         final PutTargetsRequest putTargetsRequest = PutTargetsRequest.builder()
                 .rule(ruleName)
-                .targets(target)
+                .targets(eventPublisherTarget, shiftPublisherTarget)
                 .build();
         logger.info(format("PutTargetsRequest to CloudWatch Events API: %s", putTargetsRequest));
         final PutTargetsResponse putTargetsResponse = cloudWatchEventsClient.putTargets(putTargetsRequest);
